@@ -147,7 +147,51 @@ class Dataset:
             self.df.dropna(subset=subset, inplace=True)
         else:
             print("DataFrame is empty. Load data before dropping NaN values.")
+    def extract_datetime_components(self, datetime_col, components):
+        """
+        Extracts one or more datetime components from a specified column and
+        adds them as new columns to the internal DataFrame.
+
+        Args:
+            datetime_col (str): Name of the datetime column.
+            components (list or str): Components to extract ('month', 'day', 'hour', 'weekday')
+        """
+        if datetime_col not in self.df.columns:
+            raise ValueError(f"Column '{datetime_col}' not found in DataFrame.")
+
+        self.df[datetime_col] = pd.to_datetime(self.df[datetime_col], errors='coerce')
+
+        if isinstance(components, str):
+            components = [components]
+
+        for component in components:
+            new_col = f"{datetime_col}_{component}"
+            if component == 'month':
+                self.df[new_col] = self.df[datetime_col].dt.month_name()
+            elif component == 'day':
+                self.df[new_col] = self.df[datetime_col].dt.day_name()
+            elif component == 'hour':
+                self.df[new_col] = self.df[datetime_col].dt.hour
+            elif component == 'weekend':
+                self.df[new_col] = self.df[datetime_col].dt.dayofweek.isin([5,6])
+            else:
+                raise ValueError(f"Unsupported component: '{component}'")
+    def change_datatype(self, columns, dtype):
+        """
+        Changes the datatype of specified columns in the DataFrame.
+
+        Args:
+            columns (list): List of column names to change.
+            dtype (str or type): Desired datatype (e.g., 'int', 'float', 'str').
+        """
+        if not isinstance(columns, list):
+            raise ValueError("Columns must be provided as a list.")
         
+        for col in columns:
+            if col in self.df.columns:
+                self.df[col] = self.df[col].astype(dtype)
+            else:
+                print(f"Column '{col}' does not exist in DataFrame.")
 
 
 class MIMIC_IV:
