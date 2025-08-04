@@ -70,7 +70,6 @@ def get_preprocessor_and_split(
     """
     # Separate features and target
     X = data.drop(columns=[target_col])
-    X = pd.get_dummies(X, columns=categorical_features, drop_first=True)
     y = data[target_col]
     
     # Split data first to avoid data leakage
@@ -83,18 +82,20 @@ def get_preprocessor_and_split(
     # Default preprocessing steps if not provided
     if preprocessing_steps is None:
         preprocessing_steps = {
-            'numeric': [('scaler', StandardScaler())]
+            'numeric': [('scaler', StandardScaler()),
+                        ('log_transform', FunctionTransformer(np.log1p, validate=True))],
+            'categorical': [('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False, drop='first'))]
         }
     
     # Create column transformers
     numeric_transformer = Pipeline(steps=preprocessing_steps['numeric'])
-    #categorical_transformer = Pipeline(steps=preprocessing_steps['categorical'])
+    categorical_transformer = Pipeline(steps=preprocessing_steps['categorical'])
     
     # Combine transformers
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', numeric_transformer, numeric_features)
-            #('cat', categorical_transformer, categorical_features)
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features)
         ],
         remainder='passthrough'  # Keep other columns unchanged
     )
