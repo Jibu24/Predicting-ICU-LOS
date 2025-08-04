@@ -192,6 +192,22 @@ class Dataset:
                 self.df[col] = self.df[col].astype(dtype)
             else:
                 print(f"Column '{col}' does not exist in DataFrame.")
+    def log_transform(self, columns):
+        """
+        Applies log transformation to specified columns in the DataFrame.
+
+        Args:
+            columns (list): List of column names to apply log transformation.
+        """
+        if not isinstance(columns, list):
+            raise ValueError("Columns must be provided as a list.")
+        
+        for col in columns:
+            if col in self.df.columns:
+                self.df[f'log_{col}'] = np.log1p(self.df[col])
+                self.df.drop(columns=[col], inplace=True)
+            else:
+                print(f"Column '{col}' does not exist in DataFrame.")
 
 
 class MIMIC_IV:
